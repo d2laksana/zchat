@@ -7,7 +7,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -49,6 +49,19 @@ export class UsersService {
       .andWhere('user.deleted_at IS NULL')
       .addSelect('user.password')
       .getOne();
+  }
+
+  async searchUsers(keyword: string): Promise<User[]> {
+    console.log(keyword);
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.name LIKE :keyword OR user.email LIKE :keyword', {
+        keyword: `%${keyword}%`,
+      })
+      .andWhere('user.deleted_at IS NULL')
+      .select(['user.id', 'user.name', 'user.email', 'user.avatar_url'])
+      .take(10)
+      .getMany();
   }
 
   findAll() {

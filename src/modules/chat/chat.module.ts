@@ -6,12 +6,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Message, MessageSchema } from './schemas/message.schema';
 import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
+import { GroupsModule } from '../groups/groups.module';
 
 @Module({
   imports: [
     ConfigModule,
     JwtModule.register({}),
     MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
+    GroupsModule,
   ],
   controllers: [ChatController],
   providers: [ChatGateway, ChatService],

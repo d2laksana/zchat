@@ -11,6 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { CreateMessageDto } from '../dto/create-message.dto';
 import { ChatService } from '../chat.service';
+import { GroupsService } from 'src/modules/groups/groups.service';
 
 interface AuthSocket extends Socket {
   data: {
@@ -34,6 +35,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private jwtService: JwtService,
     private chatService: ChatService,
+    private groupsService: GroupsService,
   ) {}
 
   async handleConnection(client: AuthSocket) {
@@ -55,7 +57,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       client.data.user = payload;
       await client.join(`user-${payload.sub}`);
-      console.log(`User ${payload.email} join room: user-${payload.sub}`);
+
+      const memberships = await this.groupsService.findUserGroups(payload.sub);
+      for (const membership of memberships) {
+        await client.join(`group-${membership.groupId}`);
+      }
     } catch (error) {
       console.log(`Client ${client.id} rejected: ${error}`);
       client.disconnect();
@@ -89,7 +95,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       timestamp: savedMessage['createdAt'],
     };
 
-    this.server.to(`user-${receiverId}`).emit('receiveMessage', messageToSend);
+    if (payload.isGroupMessage) {
+      this.server
+        .to(`group-${receiverId}`)
+        .emit('receiveMessage', messageToSend);
+    } else {
+      this.server
+        .to(`user-${receiverId}`)
+        .emit('receiveMessage', messageToSend);
+    }
   }
 
   handleDisconnect(client: AuthSocket) {
