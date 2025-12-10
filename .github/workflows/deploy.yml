@@ -18,17 +18,20 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            # Navigate to the project folder
+            # 1. Load NVM (Node Version Manager) environment
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+            # 2. Add common paths just in case (for global tools like pm2)
+            export PATH=$PATH:/usr/local/bin
+
+            # 3. Navigate to project
             cd /var/www/zchat
 
-            # Pull the latest changes
+            # 4. Pull and Install
             git pull origin main
+            npm ci  # Use 'ci' instead of 'install' for stability
 
-            # Install new dependencies (if any)
-            npm install
-
-            # Rebuild the NestJS application
+            # 5. Build and Restart
             npm run build
-
-            # Restart the application with PM2
             pm2 restart zchat-be
