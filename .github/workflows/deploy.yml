@@ -1,0 +1,34 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main # Set this to your default branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # Navigate to the project folder
+            cd /var/www/zchat
+
+            # Pull the latest changes
+            git pull origin main
+
+            # Install new dependencies (if any)
+            npm install
+
+            # Rebuild the NestJS application
+            npm run build
+
+            # Restart the application with PM2
+            pm2 restart zchat-be
