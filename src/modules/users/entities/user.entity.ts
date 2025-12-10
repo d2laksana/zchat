@@ -1,9 +1,11 @@
 import { Exclude } from 'class-transformer';
+import { GroupMember } from 'src/modules/groups/entities/group-member.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -34,4 +36,7 @@ export class User {
 
   @DeleteDateColumn()
   deleted_at: Date;
+
+  @OneToMany(() => GroupMember, (groupMember) => groupMember.user)
+  groupMembers: GroupMember[];
 }
