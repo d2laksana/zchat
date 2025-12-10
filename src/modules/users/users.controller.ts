@@ -8,10 +8,13 @@ import {
   Delete,
   UseInterceptors,
   ClassSerializerInterceptor,
+  UseGuards,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -21,6 +24,13 @@ export class UsersController {
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('search')
+  search(@Query('q') keyword: string) {
+    console.log(keyword);
+    return this.usersService.searchUsers(keyword);
   }
 
   @Get()
